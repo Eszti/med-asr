@@ -14,6 +14,7 @@ import argparse
 import json
 import os
 import wave
+import logging
 
 
 def main(data_directory, output_file):
@@ -32,12 +33,16 @@ def main(data_directory, output_file):
                 label = ' '.join(split[1:]).lower()
                 audio_file = os.path.join(speaker_path, speaker,
                                           file_id) + '.wav'
-                audio = wave.open(audio_file)
-                duration = float(audio.getnframes()) / audio.getframerate()
-                audio.close()
-                keys.append(audio_file)
-                durations.append(duration)
-                labels.append(label)
+		try:
+		    audio = wave.open(audio_file)
+		    duration = float(audio.getnframes()) / audio.getframerate()
+		    audio.close()
+		    keys.append(audio_file)
+		    durations.append(duration)
+		    labels.append(label)
+		except IOError as e:
+		    print(e)
+		    logging.warning('Skipping {}'.format(audio))
     with open(output_file, 'w') as out_file:
         for i in range(len(keys)):
             line = json.dumps({'key': keys[i], 'duration': durations[i],
